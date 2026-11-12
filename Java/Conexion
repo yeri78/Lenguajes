@@ -1,0 +1,40 @@
+package transporte;
+
+// Responsable: Integrante 1 (modelos y validación)
+
+/** Tramo entre dos ubicaciones (se usa en ambos sentidos). */
+public record Conexion(String origen, String destino, double distanciaKm, String trafico, double peaje) {
+
+    public static Conexion desdeFila(Fila fila) {
+        String origen = Validacion.requerirTexto(fila, "origen");
+        String destino = Validacion.requerirTexto(fila, "destino");
+        if (origen.equals(destino)) {
+            throw new DatosInvalidosException("Una conexión no puede unir una ubicación consigo misma");
+        }
+        return new Conexion(origen, destino,
+                Validacion.requerirNumero(fila, "distancia_km", true),
+                Validacion.requerirOpcion(fila, "trafico", Constantes::esTrafico, "BAJO, MEDIO, ALTO"),
+                Validacion.requerirNumero(fila, "peaje", false));
+    }
+
+    public Conexion invertida() {
+        return new Conexion(destino, origen, distanciaKm, trafico, peaje);
+    }
+
+    public double tiempoMin() {
+        return distanciaKm / Constantes.VELOCIDAD_BASE_KMH * 60.0 * Constantes.factorTrafico(trafico);
+    }
+
+    public double costo() {
+        return distanciaKm * Constantes.COSTO_POR_KM + peaje;
+    }
+
+    public double peso(String criterio) {
+        return switch (criterio) {
+            case "DISTANCIA" -> distanciaKm;
+            case "TIEMPO" -> tiempoMin();
+            case "COSTO" -> costo();
+            default -> throw new DatosInvalidosException("Criterio desconocido: " + criterio);
+        };
+    }
+}
