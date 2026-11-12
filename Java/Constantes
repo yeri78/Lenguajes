@@ -1,0 +1,66 @@
+ package transporte;
+
+// Responsable: Integrante 1 (modelos y validación)
+
+/** Reglas de negocio compartidas por las tres versiones (Python, JavaScript, Java). */
+public final class Constantes {
+    private Constantes() { }
+
+    public static final double VELOCIDAD_BASE_KMH = 60.0;
+    public static final double COSTO_POR_KM = 2.5;
+
+    public static boolean esTrafico(String t) {
+        return t.equals("BAJO") || t.equals("MEDIO") || t.equals("ALTO");
+    }
+
+    public static boolean esPrioridad(String p) {
+        return p.equals("CRITICA") || p.equals("ALTA") || p.equals("MEDIA") || p.equals("BAJA");
+    }
+
+    public static boolean esCriterio(String c) {
+        return c.equals("DISTANCIA") || c.equals("TIEMPO") || c.equals("COSTO");
+    }
+
+    public static boolean esEstadoVehiculo(String e) {
+        return e.equals("DISPONIBLE") || e.equals("OCUPADO");
+    }
+
+    public static double factorTrafico(String trafico) {
+        return switch (trafico) {
+            case "BAJO" -> 1.0;
+            case "MEDIO" -> 1.3;
+            case "ALTO" -> 1.7;
+            default -> throw new DatosInvalidosException("Tráfico desconocido: " + trafico);
+        };
+    }
+
+    /** Horas máximas de respuesta por prioridad. */
+    public static int horasMaxRespuesta(String prioridad) {
+        return switch (prioridad) {
+            case "CRITICA" -> 1;
+            case "ALTA" -> 2;
+            case "MEDIA" -> 8;
+            case "BAJA" -> 24;
+            default -> throw new DatosInvalidosException("Prioridad desconocida: " + prioridad);
+        };
+    }
+
+    /** Menor número = se atiende primero. */
+    public static int ordenPrioridad(String prioridad) {
+        return switch (prioridad) {
+            case "CRITICA" -> 0;
+            case "ALTA" -> 1;
+            case "MEDIA" -> 2;
+            case "BAJA" -> 3;
+            default -> throw new DatosInvalidosException("Prioridad desconocida: " + prioridad);
+        };
+    }
+
+    public static ListaEnlazada<String> criterios() {
+        ListaEnlazada<String> lista = new ListaEnlazada<>();
+        lista.agregarFinal("DISTANCIA");
+        lista.agregarFinal("TIEMPO");
+        lista.agregarFinal("COSTO");
+        return lista;
+    }
+}
