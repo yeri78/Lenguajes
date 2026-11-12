@@ -1,0 +1,252 @@
+package transporte;
+
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.function.ToDoubleFunction;
+
+// Responsable: Integrante 2 (estructuras y concurrencia)
+
+/**
+ * Lista enlazada simple genérica (estructura 1 de 2).
+ * Guarda ubicaciones, conexiones, vehículos, solicitudes, resultados y los caminos de las rutas.
+ * Los métodos filtrar/transformar/contar/sumar/minimo reciben funciones (orden superior).
+ */
+public class ListaEnlazada<T> implements Iterable<T> {
+
+    private static final class Nodo<T> {
+        private final T valor;
+        private Nodo<T> siguiente;
+
+        private Nodo(T valor) {
+            this.valor = valor;
+        }
+    }
+
+    private Nodo<T> cabeza;
+    private Nodo<T> cola;
+    private int tamano;
+
+    public void agregarFinal(T valor) {
+        Nodo<T> nuevo = new Nodo<>(valor);
+        if (cabeza == null) {
+            cabeza = nuevo;
+        } else {
+            cola.siguiente = nuevo;
+        }
+        cola = nuevo;
+        tamano++;
+    }
+
+    public void agregarInicio(T valor) {
+        Nodo<T> nuevo = new Nodo<>(valor);
+        nuevo.siguiente = cabeza;
+        cabeza = nuevo;
+        if (cola == null) {
+            cola = nuevo;
+        }
+        tamano++;
+    }
+
+    public T eliminarUltimo() {
+        if (cabeza == null) {
+            throw new NoSuchElementException("La lista está vacía");
+        }
+        T valor = cola.valor;
+        if (cabeza == cola) {
+            cabeza = null;
+            cola = null;
+        } else {
+            Nodo<T> anterior = cabeza;
+            while (anterior.siguiente != cola) {
+                anterior = anterior.siguiente;
+            }
+            anterior.siguiente = null;
+            cola = anterior;
+        }
+        tamano--;
+        return valor;
+    }
+
+    public T ultimo() {
+        if (cola == null) {
+            throw new NoSuchElementException("La lista está vacía");
+        }
+        return cola.valor;
+    }
+
+    public T obtener(int indice) {
+        if (indice < 0 || indice >= tamano) {
+            throw new IndexOutOfBoundsException("Índice fuera de rango: " + indice);
+        }
+        Nodo<T> actual = cabeza;
+        for (int i = 0; i < indice; i++) {
+            actual = actual.siguiente;
+        }
+        return actual.valor;
+    }
+
+    public int tamano() {
+        return tamano;
+    }
+
+    public boolean estaVacia() {
+        return tamano == 0;
+    }
+
+    public boolean contiene(Predicate<T> condicion) {
+        return buscar(condicion).isPresent();
+    }
+
+    public boolean contieneValor(T valor) {
+        return contiene(x -> x.equals(valor));
+    }
+
+    public Optional<T> buscar(Predicate<T> condicion) {
+        for (T valor : this) {
+            if (condicion.test(valor)) {
+                return Optional.ofNullable(valor);
+            }
+        }
+        return Optional.empty();
+    }
+
+    public ListaEnlazada<T> filtrar(Predicate<T> condicion) {
+        ListaEnlazada<T> resultado = new ListaEnlazada<>();
+        for (T valor : this) {
+            if (condicion.test(valor)) {
+                resultado.agregarFinal(valor);
+            }
+        }
+        return resultado;
+    }
+
+    public <R> ListaEnlazada<R> transformar(Function<T, R> funcion) {
+        ListaEnlazada<R> resultado = new ListaEnlazada<>();
+        for (T valor : this) {
+            resultado.agregarFinal(funcion.apply(valor));
+        }
+        return resultado;
+    }
+
+    public int contar(Predicate<T> condicion) {
+        return filtrar(condicion).tamano();
+    }
+
+    public double sumar(ToDoubleFunction<T> funcion) {
+        double total = 0.0;
+        for (T valor : this) {
+            total += funcion.applyAsDouble(valor);
+        }
+        return total;
+    }
+
+    public Optional<T> minimo(Comparator<T> comparador) {
+        T mejor = null;
+        boolean hay = false;
+        for (T valor : this) {
+            if (!hay || comparador.compare(valor, mejor) < 0) {
+                mejor = valor;
+                hay = true;
+            }
+        }
+        return hay ? Optional.ofNullable(mejor) : Optional.empty();
+    }
+
+    public ListaEnlazada<T> copiar() {
+        ListaEnlazada<T> copia = new ListaEnlazada<>();
+        for (T valor : this) {
+            copia.agregarFinal(valor);
+        }
+        return copia;
+    }
+
+    /** Inserta manteniendo el orden; los iguales quedan después (estable). */
+    public void insertarOrdenado(T valor, Comparator<T> comparador) {
+        if (cabeza == null || comparador.compare(cabeza.valor, valor) > 0) {
+            agregarInicio(valor);
+            return;
+        }
+        Nodo<T> actual = cabeza;
+        while (actual.siguiente != null && comparador.compare(actual.siguiente.valor, valor) <= 0) {
+            actual = actual.siguiente;
+        }
+        Nodo<T> nuevo = new Nodo<>(valor);
+        nuevo.siguiente = actual.siguiente;
+        actual.siguiente = nuevo;
+        if (actual == cola) {
+            cola = nuevo;
+        }
+        tamano++;
+    }
+
+    public ListaEnlazada<T> ordenada(Comparator<T> comparador) {
+        ListaEnlazada<T> resultado = new ListaEnlazada<>();
+        for (T valor : this) {
+            resultado.insertarOrdenado(valor, comparador);
+        }
+        return resultado;
+    }
+
+    public String unir(String separador) {
+        StringBuilder texto = new StringBuilder();
+        for (T valor : this) {
+            if (texto.length() > 0) {
+                texto.append(separador);
+            }
+            texto.append(valor);
+        }
+        return texto.toString();
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+        return new Iterator<>() {
+            private Nodo<T> actual = cabeza;
+
+            @Override
+            public boolean hasNext() {
+                return actual != null;
+            }
+
+            @Override
+            public T next() {
+                T valor = actual.valor;
+                actual = actual.siguiente;
+                return valor;
+            }
+        };
+    }
+
+    @Override
+    public boolean equals(Object otro) {
+        if (!(otro instanceof ListaEnlazada<?> lista) || lista.tamano != tamano) {
+            return false;
+        }
+        Iterator<?> a = lista.iterator();
+        for (T valor : this) {
+            Object b = a.next();
+            if (valor == null ? b != null : !valor.equals(b)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 1;
+        for (T valor : this) {
+            hash = 31 * hash + (valor == null ? 0 : valor.hashCode());
+        }
+        return hash;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + unir(", ") + "]";
+    }
+}
