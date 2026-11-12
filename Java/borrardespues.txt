@@ -1,0 +1,10 @@
+<<<<<<< HEAD
+<<<<<<< HEAD
+gcgfcgfcf
+
+hvh
+=======
+qwerty
+>>>>>>> 5f59f7a392196f16e9d1a353d4fb77c48c9924bd
+=======
+>>>>>>> 1fb4c92c7e455b03bb16fb1c145509a3d07aeb70
