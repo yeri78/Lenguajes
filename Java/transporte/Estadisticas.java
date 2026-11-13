@@ -2,7 +2,7 @@ package transporte;
 
 // Responsable: Integrante 3 (red, rutas y estadísticas)
 
-/** Resumen estadístico del procesamiento. */
+/** resumen del procesamiento. */
 public final class Estadisticas {
     private Estadisticas() { }
 

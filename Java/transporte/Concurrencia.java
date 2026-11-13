@@ -7,7 +7,7 @@ import java.util.concurrent.Future;
 
 // Responsable: Integrante 2 (estructuras y concurrencia)
 
-/** Cálculo de rutas para muchas solicitudes, secuencial o en paralelo. */
+/** Calcular rutas */
 public final class Concurrencia {
     private Concurrencia() { }
 

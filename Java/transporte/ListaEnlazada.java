@@ -11,9 +11,8 @@ import java.util.function.ToDoubleFunction;
 // Responsable: Integrante 2 (estructuras y concurrencia)
 
 /**
- * Lista enlazada simple genérica (estructura 1 de 2).
- * Guarda ubicaciones, conexiones, vehículos, solicitudes, resultados y los caminos de las rutas.
- * Los métodos filtrar/transformar/contar/sumar/minimo reciben funciones (orden superior).
+ Lista enlazada simple (estructura 1 de 2). permite guardar ubicaciones, conexiones, vehículos, solicitudes, resultados y los caminos de las rutas.
+ Los métodos filtrar/transformar/contar/sumar/minimo reciben funciones
  */
 public class ListaEnlazada<T> implements Iterable<T> {
 

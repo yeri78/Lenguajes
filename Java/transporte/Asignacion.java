@@ -5,7 +5,7 @@ import java.util.Optional;
 
 // Responsable: Integrante 4 (asignación, datos y CLI)
 
-/** Gestión de flota y asignación de solicitudes por prioridad. */
+/**  flota y asignación de solicitudes dependiendo de la prioridad */
 public final class Asignacion {
     private Asignacion() { }
 

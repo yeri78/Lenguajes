@@ -2,7 +2,7 @@ package transporte;
 
 // Responsable: Integrante 1 (modelos y validación)
 
-/** Tramo entre dos ubicaciones (se usa en ambos sentidos). */
+/** distancia entre ubicaciones */
 public record Conexion(String origen, String destino, double distanciaKm, String trafico, double peaje) {
 
     public static Conexion desdeFila(Fila fila) {

@@ -5,7 +5,7 @@ import java.util.Iterator;
 
 // Responsable: Integrante 3 (red, rutas y estadísticas)
 
-/** Búsqueda de rutas: todas las rutas simples (recursión) y la mejor (Dijkstra con ColaPrioridad). */
+/** busca las rutas simples (recursión) y la mejor (Dijkstra con ColaPrioridad). */
 public final class Rutas {
     private Rutas() { }
 
@@ -21,7 +21,7 @@ public final class Rutas {
         return Integer.compare(a.tamano(), b.tamano());
     }
 
-    /** Suma distancia, tiempo y costo recorriendo los tramos en orden. */
+    /** suma distancia, tiempo y costo recorriendo tramos en orden. */
     public static Ruta construirRuta(Red red, ListaEnlazada<String> nodos) {
         double distancia = 0.0, tiempo = 0.0, costo = 0.0;
         String anterior = null;
@@ -37,7 +37,7 @@ public final class Rutas {
         return new Ruta(nodos.copiar(), distancia, tiempo, costo);
     }
 
-    /** Todas las rutas simples (sin repetir ubicaciones), ordenadas por su camino. */
+    /**  rutas simples (sin repetir ubicaciones), ordenadas por camino. */
     public static ListaEnlazada<Ruta> todasLasRutas(Red red, String origen, String destino) {
         red.validarUbicacion(origen);
         red.validarUbicacion(destino);
@@ -65,7 +65,7 @@ public final class Rutas {
 
     private record Entrada(double peso, ListaEnlazada<String> camino) { }
 
-    /** Dijkstra. Desempata por orden lexicográfico del camino (determinista). Devuelve null si no hay ruta. */
+    /** desempata por orden lexicográfico del camino. null si no hay ruta. */
     public static Ruta mejorRuta(Red red, String origen, String destino, String criterio) {
         red.validarUbicacion(origen);
         red.validarUbicacion(destino);

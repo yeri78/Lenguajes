@@ -10,7 +10,7 @@ import java.util.Locale;
 
 // Responsable: Integrante 4 (asignación, datos y CLI)
 
-/** Lectura de CSV, construcción de la red y escritura de resultados. */
+/** construcción de la red y escritura de resultados. */
 public final class Datos {
     private Datos() { }
 
