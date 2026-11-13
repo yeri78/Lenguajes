@@ -1,10 +1,8 @@
-el codigo de fila: 
-
 package transporte;
 
 // Responsable: Integrante 1 (modelos y validación)
 
-/** Una fila de CSV: columnas con sus valores (sin usar Map). */
+/** fila de CSV: columnas con sus valores  */
 public final class Fila {
     private final String[] columnas;
     private final String[] celdas;

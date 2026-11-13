@@ -1,5 +1,4 @@
 package transporte;
-
 // Responsable: Integrante 4 (asignación, datos y CLI)
 
 /** Caso de uso principal: procesar todas las solicitudes del conjunto de datos. */

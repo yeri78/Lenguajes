@@ -1,0 +1,7 @@
+id,tipo,capacidad,estado,conductor
+V1,Sedan,4,DISPONIBLE,Ana Lopez
+V2,Van,8,DISPONIBLE,Luis Perez
+V3,Van,8,OCUPADO,Marta Ruiz
+V4,Autobus,30,DISPONIBLE,Carlos Soto
+V5,Sedan,4,OCUPADO,Elena Diaz
+V6,Camioneta,6,DISPONIBLE,Jorge Mena

@@ -2,7 +2,7 @@
 
 // Responsable: Integrante 1 (modelos y validación)
 
-/** Reglas de negocio compartidas por las tres versiones (Python, JavaScript, Java). */
+/** reglas que se usaran para las tres versiones del proyecto */
 public final class Constantes {
     private Constantes() { }
 

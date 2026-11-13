@@ -1,0 +1,12 @@
+metrica,valor
+total_solicitudes,10
+asignadas,4
+en_cola,6
+sin_ruta,0
+vehiculos_disponibles,0
+vehiculos_ocupados,6
+distancia_total_km,585.00
+costo_total,1862.50
+tiempo_promedio_min,179.15
+cumplen_sla,2
+porcentaje_sla,50.00

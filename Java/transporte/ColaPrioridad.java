@@ -6,8 +6,7 @@ import java.util.NoSuchElementException;
 // Responsable: Integrante 2 (estructuras y concurrencia)
 
 /**
- * Cola de prioridad implementada como lista enlazada ordenada (estructura 2 de 2).
- * Se usa para atender solicitudes (críticas primero) y como frontera de la búsqueda de rutas.
+ la prioridad es una lista enlazada ordenada (estructura 2 de 2).  la usamos para atender solicitudes
  */
 public class ColaPrioridad<T> {
 
