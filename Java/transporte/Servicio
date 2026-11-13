@@ -1,0 +1,29 @@
+package transporte;
+
+// Responsable: Integrante 4 (asignación, datos y CLI)
+
+/** Caso de uso principal: procesar todas las solicitudes del conjunto de datos. */
+public final class Servicio {
+    private Servicio() { }
+
+    public record Salida(ListaEnlazada<ResultadoSolicitud> resultados, ListaEnlazada<String[]> resumen,
+                         Asignacion.GestorFlota flota) { }
+
+    public static Salida procesar(Red red, ListaEnlazada<Vehiculo> vehiculos, ListaEnlazada<Solicitud> solicitudes,
+                                  boolean concurrente) {
+        // 1) Parte paralelizable: calcular la ruta de cada solicitud.
+        ListaEnlazada<Concurrencia.Pedido> pedidos =
+                solicitudes.transformar(s -> new Concurrencia.Pedido(s.origen(), s.destino(), s.criterio()));
+        ListaEnlazada<Ruta> rutas = Concurrencia.calcularRutas(red, pedidos, concurrente, 4);
+
+        // 2) Parte secuencial: asignar vehículos respetando la prioridad.
+        ListaEnlazada<Asignacion.SolicitudRuteada> pendientes = new ListaEnlazada<>();
+        java.util.Iterator<Ruta> siguienteRuta = rutas.iterator();
+        for (Solicitud s : solicitudes) {
+            pendientes.agregarFinal(new Asignacion.SolicitudRuteada(s, siguienteRuta.next()));
+        }
+        Asignacion.GestorFlota flota = new Asignacion.GestorFlota(vehiculos);
+        ListaEnlazada<ResultadoSolicitud> resultados = Asignacion.asignarSolicitudes(pendientes, flota);
+        return new Salida(resultados, Estadisticas.resumir(resultados, flota), flota);
+    }
+}
