@@ -1,0 +1,84 @@
+package transporte;
+
+import java.util.Comparator;
+import java.util.Optional;
+
+// Responsable: Integrante 4 (asignación, datos y CLI)
+
+/** Gestión de flota y asignación de solicitudes por prioridad. */
+public final class Asignacion {
+    private Asignacion() { }
+
+    /** Solicitud junto con la ruta ya calculada (puede ser null). */
+    public record SolicitudRuteada(Solicitud solicitud, Ruta ruta) { }
+
+    /** Críticas primero; a igual prioridad, por id. */
+    public static final Comparator<Solicitud> POR_PRIORIDAD =
+            Comparator.comparingInt((Solicitud s) -> Constantes.ordenPrioridad(s.prioridad()))
+                    .thenComparing(Solicitud::id);
+
+    public static class GestorFlota {
+        private final ListaEnlazada<Vehiculo> vehiculos;
+
+        public GestorFlota(ListaEnlazada<Vehiculo> vehiculos) {
+            this.vehiculos = vehiculos;
+        }
+
+        public ListaEnlazada<Vehiculo> disponibles() {
+            return vehiculos.filtrar(Vehiculo::disponible);
+        }
+
+        public ListaEnlazada<Vehiculo> ocupados() {
+            return vehiculos.filtrar(v -> !v.disponible());
+        }
+
+        /** Elige el vehículo disponible más pequeño que alcance (best-fit) y lo marca ocupado. */
+        public Optional<Vehiculo> asignar(int pasajeros) {
+            Optional<Vehiculo> elegido = disponibles()
+                    .filtrar(v -> v.capacidad() >= pasajeros)
+                    .minimo(Comparator.comparingInt(Vehiculo::capacidad).thenComparing(Vehiculo::id));
+            elegido.ifPresent(Vehiculo::ocupar);
+            return elegido;
+        }
+    }
+
+    public static ListaEnlazada<Solicitud> ordenarPorPrioridad(ListaEnlazada<Solicitud> solicitudes) {
+        ColaPrioridad<Solicitud> cola = new ColaPrioridad<>(POR_PRIORIDAD);
+        solicitudes.forEach(cola::encolar);
+        ListaEnlazada<Solicitud> ordenadas = new ListaEnlazada<>();
+        while (!cola.estaVacia()) {
+            ordenadas.agregarFinal(cola.desencolar());
+        }
+        return ordenadas;
+    }
+
+    public static boolean cumpleSla(Solicitud solicitud, Ruta ruta) {
+        return ruta.tiempoMin() <= Constantes.horasMaxRespuesta(solicitud.prioridad()) * 60;
+    }
+
+    /** Atiende por prioridad; sin camino -> SIN_RUTA; sin vehículo disponible -> EN_COLA. */
+    public static ListaEnlazada<ResultadoSolicitud> asignarSolicitudes(ListaEnlazada<SolicitudRuteada> pendientes,
+                                                                       GestorFlota flota) {
+        ColaPrioridad<SolicitudRuteada> cola = new ColaPrioridad<>(
+                (a, b) -> POR_PRIORIDAD.compare(a.solicitud(), b.solicitud()));
+        pendientes.forEach(cola::encolar);
+        ListaEnlazada<ResultadoSolicitud> resultados = new ListaEnlazada<>();
+        while (!cola.estaVacia()) {
+            SolicitudRuteada pendiente = cola.desencolar();
+            Solicitud sol = pendiente.solicitud();
+            Ruta ruta = pendiente.ruta();
+            if (ruta == null) {
+                resultados.agregarFinal(new ResultadoSolicitud(sol, "SIN_RUTA", null, "-", "-"));
+                continue;
+            }
+            Optional<Vehiculo> vehiculo = flota.asignar(sol.pasajeros());
+            if (vehiculo.isEmpty()) {
+                resultados.agregarFinal(new ResultadoSolicitud(sol, "EN_COLA", ruta, "-", "-"));
+            } else {
+                resultados.agregarFinal(new ResultadoSolicitud(sol, "ASIGNADA", ruta, vehiculo.get().id(),
+                        cumpleSla(sol, ruta) ? "SI" : "NO"));
+            }
+        }
+        return resultados;
+    }
+}
