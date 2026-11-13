@@ -3,7 +3,7 @@ package transporte;
 // Responsable: Integrante 3 (red, rutas y estadísticas)
 
 /**
- Red de transporte guardada en 2 listas enlazadas: ubicaciones y conexiones. 
+ Red de transporte guardada en 2  listas enlazadas: ubicaciones y conexiones. 
  conexión se guarda una sola vez y se puede recorrer en ambos sentidos.
  */
 public class Red {
@@ -12,7 +12,7 @@ public class Red {
 
     public void registrarUbicacion(Ubicacion ubicacion) {
         if (existe(ubicacion.id())) {
-            throw new DatosInvalidosException("Ubicación duplicada: " + ubicacion.id());
+            throw new DatosInvalidosException("Ubicacion duplicada: " + ubicacion.id());
         }
         ubicaciones.agregarFinal(ubicacion);
     }
@@ -65,10 +65,10 @@ public class Red {
     /** Cambia el nivel de tráfico de un tramo (en ambos sentidos). */
     public void cambiarTrafico(String a, String b, String nuevoTrafico) {
         if (!Constantes.esTrafico(nuevoTrafico)) {
-            throw new DatosInvalidosException("Tráfico inválido: " + nuevoTrafico + ". Opciones: BAJO, MEDIO, ALTO");
+            throw new DatosInvalidosException("Trafico invalido: " + nuevoTrafico + ". Opciones: BAJO, MEDIO, ALTO");
         }
         if (buscarConexion(a, b) == null) {
-            throw new DatosInvalidosException("No existe conexión entre " + a + " y " + b);
+            throw new DatosInvalidosException("No existe conexion entre " + a + " y " + b);
         }
         conexiones = conexiones.transformar(c -> unen(c, a, b)
                 ? new Conexion(c.origen(), c.destino(), c.distanciaKm(), nuevoTrafico, c.peaje()) : c);
