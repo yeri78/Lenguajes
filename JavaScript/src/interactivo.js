@@ -78,7 +78,7 @@ class Interactivo {
     this.red.ubicaciones().forEach((u) => console.log(`  ${u.id} ${u.nombre}`));
     console.log('Conexiones:');
     this.red.conexiones().forEach((c) => console.log(
-      `  ${this.nombre(c.origen)} <-> ${this.nombre(c.destino)}  ${c.distanciaKm} km  tráfico ${c.trafico}  peaje $${c.peaje}`));
+      `  ${this.nombre(c.origen)} <-> ${this.nombre(c.destino)}  ${c.distanciaKm.toFixed(1)} km  tráfico ${c.trafico}  peaje $${c.peaje.toFixed(1)}`));
   }
 
   verVehiculos() {
@@ -156,4 +156,4 @@ class Interactivo {
   }
 }
 
-module.exports = { Interactivo };
+module.exports = { Interactivo, tiempo };

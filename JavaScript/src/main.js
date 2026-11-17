@@ -1,5 +1,6 @@
 'use strict';
-// Responsable: Integrante 4 (asignación, datos y CLI). 
+// Responsable: Integrante 4 (asignación, datos y CLI)
+// CLI: node src/main.js procesar | consultar ORIGEN DESTINO | vehiculos | red | benchmark | interactivo
 const path = require('node:path');
 const { ListaEnlazada } = require('./listaEnlazada');
 const { raizProyecto, cargarRed, cargarVehiculos, cargarSolicitudes, escribirLineas,
@@ -11,7 +12,7 @@ const { criterios } = require('./constantes');
 const { Interactivo } = require('./interactivo');
 const { DatosInvalidosError } = require('./validacion');
 
-const USO = 'Uso: node src/main.js procesar | consultar ORIGEN DESTINO | vehiculos | red | benchmark | interactivo';
+const USO = 'Uso: node src/main.js procesar | consultar ORIGEN DESTINO | vehiculos | red | benchmark | interactivo | ventana';
 const carpetaDatos = () => path.join(raizProyecto(), 'data');
 const carpetaSalida = () => path.join(raizProyecto(), 'resultados');
 
@@ -94,18 +95,23 @@ async function cmdInteractivo() {
   await new Interactivo(red, cargarVehiculos(carpetaDatos())).ejecutar();
 }
 
+async function cmdVentana() {
+  await require('./ventana').abrir();
+  return 'abierta';
+}
+
 async function main(argumentos) {
   const comandos = {
     procesar: cmdProcesar, consultar: cmdConsultar, vehiculos: cmdVehiculos,
-    red: cmdRed, benchmark: cmdBenchmark, interactivo: cmdInteractivo,
+    red: cmdRed, benchmark: cmdBenchmark, interactivo: cmdInteractivo, ventana: cmdVentana,
   };
   if (!comandos[argumentos[0]]) {
     console.log(USO);
     return 1;
   }
   try {
-    await comandos[argumentos[0]](...argumentos.slice(1));
-    return 0;
+    const resultado = await comandos[argumentos[0]](...argumentos.slice(1));
+    return resultado === 'abierta' ? undefined : 0;
   } catch (error) {
     if (error instanceof DatosInvalidosError) {
       console.error(`Error de datos: ${error.message}`);
@@ -115,4 +121,4 @@ async function main(argumentos) {
   }
 }
 
-main(process.argv.slice(2)).then((codigo) => { process.exitCode = codigo; });
+main(process.argv.slice(2)).then((codigo) => { if (codigo !== undefined) process.exitCode = codigo; });

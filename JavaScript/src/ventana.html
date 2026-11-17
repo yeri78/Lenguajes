@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistema de transporte (JavaScript)</title>
+<style>
+  :root { --bg:#f3f3f3; --tx:#1d1d1f; --card:#fff; --bd:#c8c8cc; --ac:#2563eb; --ac-tx:#fff; --sel:#dbeafe; --err:#b91c1c; }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#1e1e20; --tx:#ececee; --card:#2a2a2d; --bd:#48484d; --ac:#3b82f6; --ac-tx:#fff; --sel:#1e3a8a; --err:#f87171; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; padding:12px; font:14px system-ui, "Segoe UI", sans-serif; background:var(--bg); color:var(--tx); }
+  h1 { font-size:16px; margin:0 0 10px; }
+  nav { display:flex; gap:4px; border-bottom:1px solid var(--bd); }
+  nav button { border:1px solid var(--bd); border-bottom:none; background:var(--bg); color:var(--tx); padding:8px 14px;
+    border-radius:6px 6px 0 0; cursor:pointer; font:inherit; }
+  nav button.activa { background:var(--card); font-weight:600; }
+  section { display:none; background:var(--card); border:1px solid var(--bd); border-top:none; padding:12px; }
+  section.activa { display:block; }
+  .fila { display:flex; flex-wrap:wrap; gap:8px; align-items:center; margin:8px 0; }
+  select, input { font:inherit; padding:5px 8px; border:1px solid var(--bd); border-radius:4px; background:var(--card); color:var(--tx); }
+  input[type=number] { width:80px; }
+  button.accion { background:var(--ac); color:var(--ac-tx); border:none; padding:7px 14px; border-radius:4px; cursor:pointer; font:inherit; }
+  .tabla { max-height:300px; overflow:auto; border:1px solid var(--bd); }
+  table { border-collapse:collapse; width:100%; }
+  th, td { text-align:left; padding:5px 8px; border-bottom:1px solid var(--bd); white-space:nowrap; }
+  th { position:sticky; top:0; background:var(--bg); }
+  tr.sel td { background:var(--sel); }
+  tbody tr.elegible { cursor:pointer; }
+  pre { margin:8px 0 0; padding:8px; border:1px solid var(--bd); min-height:6em; white-space:pre-wrap; background:var(--card); }
+  .dos { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .error { color:var(--err); min-height:1.3em; margin-top:6px; }
+  h2 { font-size:14px; margin:4px 0; }
+</style>
+</head>
+<body>
+<h1>Sistema de transporte (JavaScript)</h1>
+<nav id="pestanas">
+  <button data-p="viaje" class="activa">Consultar y asignar viaje</button>
+  <button data-p="vehiculos">Vehículos</button>
+  <button data-p="red">Red y tráfico</button>
+  <button data-p="procesar">Procesar solicitudes</button>
+</nav>
+
+<section id="viaje" class="activa">
+  <div class="fila">
+    <label>Origen: <select id="origen"></select></label>
+    <label>Destino: <select id="destino"></select></label>
+    <button class="accion" id="buscar">Buscar rutas</button>
+  </div>
+  <div class="tabla"><table><thead><tr><th>N°</th><th>Ruta</th><th>Km</th><th>Tiempo</th><th>Costo</th><th>Destaca</th></tr></thead>
+    <tbody id="rutas"></tbody></table></div>
+  <div class="fila">
+    <label>Pasajeros: <input type="number" id="pasajeros" min="1" max="100" value="1"></label>
+    <label>Prioridad: <select id="prioridad"><option>CRITICA</option><option>ALTA</option><option selected>MEDIA</option><option>BAJA</option></select></label>
+    <button class="accion" id="asignar">Asignar viaje</button>
+  </div>
+  <pre id="resultado"></pre>
+</section>
+
+<section id="vehiculos">
+  <div class="dos">
+    <div><h2>Disponibles</h2>
+      <div class="tabla"><table><thead><tr><th>Id</th><th>Tipo</th><th>Cap.</th><th>Conductor</th></tr></thead><tbody id="disponibles"></tbody></table></div>
+      <div class="fila"><button class="accion" id="actualizar">Actualizar</button></div></div>
+    <div><h2>Ocupados</h2>
+      <div class="tabla"><table><thead><tr><th>Id</th><th>Tipo</th><th>Cap.</th><th>Conductor</th></tr></thead><tbody id="ocupados"></tbody></table></div>
+      <div class="fila"><button class="accion" id="finalizar">Finalizar viaje del seleccionado</button></div></div>
+  </div>
+</section>
+
+<section id="red">
+  <div class="tabla"><table><thead><tr><th>Desde</th><th>Hasta</th><th>Km</th><th>Tráfico</th><th>Peaje</th></tr></thead>
+    <tbody id="conexiones"></tbody></table></div>
+  <div class="fila">
+    <span>Nuevo tráfico del tramo seleccionado:</span>
+    <select id="trafico"><option>BAJO</option><option>MEDIO</option><option selected>ALTO</option></select>
+    <button class="accion" id="aplicar">Aplicar</button>
+    <span>(luego vuelve a «Buscar rutas» para ver el efecto)</span>
+  </div>
+</section>
+
+<section id="procesar">
+  <div class="fila"><button class="accion" id="procesarTodo">Procesar todas las solicitudes (en paralelo)</button></div>
+  <div class="tabla"><table><thead><tr><th>Solicitud</th><th>Prioridad</th><th>Estado</th><th>Vehículo</th><th>Cumple SLA</th><th>Ruta</th></tr></thead>
+    <tbody id="solicitudes"></tbody></table></div>
+  <pre id="resumen"></pre>
+</section>
+
+<div class="error" id="error" role="alert"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let seleccionRuta = null, seleccionOcupado = null, seleccionTramo = null;
+
+function mostrarError(texto) { $('error').textContent = texto || ''; }
+
+async function api(metodo, ruta, cuerpo) {
+  const respuesta = await fetch(ruta, {
+    method: metodo,
+    headers: { 'Content-Type': 'application/json' },
+    body: metodo === 'POST' ? JSON.stringify(cuerpo || {}) : undefined,
+  });
+  const datos = await respuesta.json();
+  if (!respuesta.ok) throw new Error(datos.error || 'Error');
+  return datos;
+}
+
+async function intentar(accion) {
+  mostrarError('');
+  try { await accion(); } catch (e) { mostrarError(e.message); }
+}
+
+/** Llena un <tbody>; valores(f) da las celdas y alElegir(f) se llama al hacer clic en la fila (opcional). */
+function llenar(tbody, filas, valores, alElegir) {
+  tbody.textContent = '';
+  filas.forEach((fila) => {
+    const tr = document.createElement('tr');
+    valores(fila).forEach((v) => { const td = document.createElement('td'); td.textContent = v; tr.appendChild(td); });
+    if (alElegir) {
+      tr.classList.add('elegible');
+      tr.addEventListener('click', () => {
+        tbody.querySelectorAll('tr').forEach((o) => o.classList.remove('sel'));
+        tr.classList.add('sel');
+        alElegir(fila);
+      });
+    }
+    tbody.appendChild(tr);
+  });
+}
+
+document.querySelectorAll('#pestanas button').forEach((b) => b.addEventListener('click', () => {
+  document.querySelectorAll('#pestanas button, section').forEach((e) => e.classList.remove('activa'));
+  b.classList.add('activa');
+  $(b.dataset.p).classList.add('activa');
+  mostrarError('');
+}));
+
+function pintarEstado(e) {
+  const opciones = e.ubicaciones.map((u) => `${u.id}`);
+  [['origen', 0], ['destino', 1]].forEach(([id, defecto]) => {
+    const select = $(id);
+    const anterior = select.value;
+    select.textContent = '';
+    e.ubicaciones.forEach((u) => {
+      const o = document.createElement('option');
+      o.value = u.id; o.textContent = `${u.id} - ${u.nombre}`;
+      select.appendChild(o);
+    });
+    select.value = anterior && opciones.includes(anterior) ? anterior : e.ubicaciones[Math.min(defecto, e.ubicaciones.length - 1)].id;
+  });
+  const vehiculo = (v) => [v.id, v.tipo, v.capacidad, v.conductor];
+  seleccionOcupado = null;
+  llenar($('disponibles'), e.disponibles, vehiculo);
+  llenar($('ocupados'), e.ocupados, vehiculo, (v) => { seleccionOcupado = v.id; });
+  seleccionTramo = null;
+  llenar($('conexiones'), e.conexiones, (c) => [c.desde, c.hasta, c.km, c.trafico, '$' + c.peaje],
+    (c) => { seleccionTramo = c; });
+}
+
+async function cargarEstado() { pintarEstado(await api('GET', '/api/estado')); }
+
+$('buscar').addEventListener('click', () => intentar(async () => {
+  seleccionRuta = null;
+  $('resultado').textContent = '';
+  llenar($('rutas'), [], () => []);
+  const { rutas } = await api('POST', '/api/rutas', { origen: $('origen').value, destino: $('destino').value });
+  if (rutas.length === 0) { $('resultado').textContent = 'No hay ruta entre esas dos ubicaciones.'; return; }
+  llenar($('rutas'), rutas, (r) => [r.numero, r.ruta, r.km, r.tiempo, r.costo, r.marcas], (r) => { seleccionRuta = r.numero; });
+  $('resultado').textContent = 'Elige una ruta de la tabla, indica pasajeros y prioridad, y pulsa «Asignar viaje».';
+}));
+
+$('asignar').addEventListener('click', () => intentar(async () => {
+  if (seleccionRuta === null) throw new Error('Selecciona una ruta de la tabla');
+  const { texto } = await api('POST', '/api/asignar',
+    { numero: seleccionRuta, pasajeros: $('pasajeros').value, prioridad: $('prioridad').value });
+  $('resultado').textContent = texto;
+  await cargarEstado();
+}));
+
+$('actualizar').addEventListener('click', () => intentar(cargarEstado));
+
+$('finalizar').addEventListener('click', () => intentar(async () => {
+  if (seleccionOcupado === null) throw new Error('Selecciona un vehículo en la lista de ocupados');
+  await api('POST', '/api/finalizar', { id: seleccionOcupado });
+  await cargarEstado();
+}));
+
+$('aplicar').addEventListener('click', () => intentar(async () => {
+  if (seleccionTramo === null) throw new Error('Selecciona un tramo de la tabla');
+  await api('POST', '/api/trafico',
+    { origen: seleccionTramo.origen, destino: seleccionTramo.destino, trafico: $('trafico').value });
+  await cargarEstado();
+}));
+
+$('procesarTodo').addEventListener('click', () => intentar(async () => {
+  $('resumen').textContent = 'Procesando...';
+  const { filas, resumen } = await api('POST', '/api/procesar');
+  llenar($('solicitudes'), filas, (f) => [f.id, f.prioridad, f.estado, f.vehiculo, f.sla, f.ruta]);
+  $('resumen').textContent = resumen.join('\n');
+}));
+
+intentar(cargarEstado);
+</script>
+</body>
+</html>
