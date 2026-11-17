@@ -20,7 +20,7 @@ DIFICULTAD = {
     "java": {"nota": 4, "motivo": "Más código (tipos, records, excepciones); concurrencia muy robusta con ExecutorService."},
 }
 PROS_CONTRAS = {
-    "python": {"pros": ["Menos líneas y lectura muy clara", "Biblioteca estándar completa (csv, unittest, heapq)", "Ideal para prototipar y analizar datos"],
+    "python": {"pros": ["Menos líneas y lectura muy clara", "Biblioteca estándar completa (csv, unittest, concurrent.futures)", "Ideal para prototipar y analizar datos"],
                "contras": ["Hilos limitados por el GIL en tareas de CPU", "Tipado dinámico: errores aparecen en ejecución", "Más lento en cómputo intensivo"]},
     "javascript": {"pros": ["Mismo lenguaje para web y servidor", "Modelo asíncrono y eventos muy natural", "Ejecutor de pruebas incluido en Node"],
                    "contras": ["Coerción implícita de tipos (tipado débil)", "Paralelismo real solo con worker_threads", "Sin cola de prioridad ni CSV nativos"]},

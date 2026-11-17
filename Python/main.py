@@ -8,6 +8,7 @@ Uso:
   python main.py red
   python main.py benchmark
   python main.py interactivo
+  python main.py ventana
 """
 import os
 import sys
@@ -105,6 +106,11 @@ def cmd_interactivo():
     Interactivo(cargar_red(carpeta_datos()), cargar_vehiculos(carpeta_datos())).ejecutar()
 
 
+def cmd_ventana():
+    from transporte.ventana import abrir
+    return abrir()
+
+
 def main(argumentos):
     comando = argumentos[0] if argumentos else ""
     try:
@@ -120,6 +126,8 @@ def main(argumentos):
             cmd_benchmark()
         elif comando == "interactivo":
             cmd_interactivo()
+        elif comando == "ventana":
+            return cmd_ventana()
         else:
             print(__doc__)
             return 1

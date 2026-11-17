@@ -1,12 +1,12 @@
 # Guía de trabajo en equipo (4 personas × 3 lenguajes)
 
-Cada integrante debe hacer **commits en los tres lenguajes**. Propuesta: cada persona es dueña de un bloque de módulos
-y lo implementa/revisa en Python, JavaScript y Java (3 commits mínimos por persona).
+Cada integrante debe hacer **commits en los tres lenguajes**. cada persona es dueña de un bloque de módulos
+y lo implementa/revisa en Python, JavaScript y Java.
 
 | Integrante | Bloque | Python | JavaScript | Java |
 |---|---|---|---|---|
 | A | Modelos y validación | `validacion.py`, `modelos.py` | `validacion.js`, `modelos.js` | `Validacion`, `Constantes`, `Conexion`, `Vehiculo`, `Solicitud`… |
-| B | Grafo y rutas | `grafo.py`, `rutas.py` | `grafo.js`, `rutas.js` | `Grafo`, `Rutas` |
+| B | Estructuras, red y rutas | `lista_enlazada.py`, `cola_prioridad.py`, `red.py`, `rutas.py` | `listaEnlazada.js`, `colaPrioridad.js`, `red.js`, `rutas.js` | `ListaEnlazada`, `ColaPrioridad`, `Red`, `Rutas` |
 | C | Asignación y estadísticas | `asignacion.py`, `estadisticas.py` | `asignacion.js`, `estadisticas.js` | `Asignacion`, `Estadisticas` |
 | D | Datos, concurrencia, CLI, visualización | `datos.py`, `concurrencia.py`, `servicio.py`, `main.py` | `datos.js`, `concurrencia.js`, `trabajador.js`, `main.js` | `Datos`, `Concurrencia`, `Servicio`, `Main` |
 
@@ -27,3 +27,4 @@ git commit -m "feat(java): agrega modelos y validación"
 git push -u origin feature/<nombre>-<bloque>
 # Abrir Pull Request y pedir revisión a otro integrante
 ```
+

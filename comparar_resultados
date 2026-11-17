@@ -1,0 +1,34 @@
+"""Verifica que las tres implementaciones produzcan resultados idénticos.
+
+Uso (desde la raíz del repositorio):  python comparar_resultados.py
+Requiere haber ejecutado antes 'procesar' en cada lenguaje.
+"""
+import os
+import sys
+
+RAIZ = os.path.dirname(os.path.abspath(__file__))
+ESPERADO = os.path.join(RAIZ, "data", "resultados_esperados.csv")
+
+
+def leer(ruta):
+    with open(ruta, encoding="utf-8") as f:
+        return f.read()
+
+
+def main():
+    esperado = leer(ESPERADO)
+    todo_bien = True
+    for lenguaje in ("python", "javascript", "java"):
+        ruta = os.path.join(RAIZ, "resultados", f"resultados_{lenguaje}.csv")
+        if not os.path.exists(ruta):
+            print(f"[FALTA] {lenguaje}: ejecuta 'procesar' primero")
+            todo_bien = False
+            continue
+        coincide = leer(ruta) == esperado
+        todo_bien &= coincide
+        print(f"[{'OK' if coincide else 'DIFIERE'}] {lenguaje}")
+    return 0 if todo_bien else 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
