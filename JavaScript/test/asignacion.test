@@ -1,0 +1,45 @@
+'use strict';
+// Responsable: Integrante 4 (asignación, datos y CLI)
+const test = require('node:test');
+const assert = require('node:assert');
+const fs = require('node:fs');
+const os = require('node:os');
+const path = require('node:path');
+const { ListaEnlazada } = require('../src/listaEnlazada');
+const { Vehiculo } = require('../src/modelos');
+const { GestorFlota, ordenarPorPrioridad } = require('../src/asignacion');
+const { cargarRed, cargarVehiculos, cargarSolicitudes, leerCsv, escribirResultados, raizProyecto } = require('../src/datos');
+const { procesar } = require('../src/servicio');
+const { DatosInvalidosError } = require('../src/validacion');
+
+const datos = path.join(raizProyecto(), 'data');
+const red = cargarRed(datos);
+
+test('las críticas se ordenan primero', () => {
+  const orden = ordenarPorPrioridad(cargarSolicitudes(datos, red));
+  assert.strictEqual(orden.obtener(0).prioridad, 'CRITICA');
+  assert.strictEqual(orden.ultimo().prioridad, 'BAJA');
+});
+
+test('sin vehículo disponible queda en cola', async () => {
+  const { resultados } = await procesar(red, cargarVehiculos(datos), cargarSolicitudes(datos, red), false);
+  assert.ok(resultados.contiene((r) => r.estado === 'EN_COLA'));
+});
+
+test('asignación elige el vehículo más pequeño que alcanza', () => {
+  const flota = new GestorFlota(ListaEnlazada.desdeArreglo([new Vehiculo('A', 'Bus', 30), new Vehiculo('B', 'Sedan', 4)]));
+  assert.strictEqual(flota.asignar(3).id, 'B');
+  assert.strictEqual(flota.ocupados().tamano(), 1);
+  assert.strictEqual(flota.asignar(100), null);
+});
+
+test('archivo faltante lanza error de datos', () => {
+  assert.throws(() => leerCsv(path.join(datos, 'no_existe.csv')), DatosInvalidosError);
+});
+
+test('resultados coinciden con los esperados', async () => {
+  const { resultados } = await procesar(red, cargarVehiculos(datos), cargarSolicitudes(datos, red), true);
+  const temporal = path.join(os.tmpdir(), 'resultados_js_test.csv');
+  escribirResultados(temporal, resultados);
+  assert.strictEqual(fs.readFileSync(temporal, 'utf-8'), fs.readFileSync(path.join(datos, 'resultados_esperados.csv'), 'utf-8'));
+});

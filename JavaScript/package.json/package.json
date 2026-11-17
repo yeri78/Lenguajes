@@ -1,0 +1,12 @@
+{
+  "name": "transporte-js",
+  "version": "1.0.0",
+  "description": "Sistema de transporte con listas enlazadas (versión JavaScript)",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js procesar",
+    "interactivo": "node src/main.js interactivo",
+    "test": "node --test"
+  },
+  "license": "MIT"
+}

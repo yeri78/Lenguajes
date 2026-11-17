@@ -1,0 +1,60 @@
+'use strict';
+// Responsable: Integrante 2 (estructuras y concurrencia)
+const test = require('node:test');
+const assert = require('node:assert');
+const path = require('node:path');
+const { ListaEnlazada } = require('../src/listaEnlazada');
+const { ColaPrioridad } = require('../src/colaPrioridad');
+const { calcularRutasSecuencial, calcularRutasConcurrente } = require('../src/concurrencia');
+const { cargarRed, raizProyecto } = require('../src/datos');
+
+const numeros = (...valores) => ListaEnlazada.desdeArreglo(valores);
+const asc = (a, b) => a - b;
+
+test('lista: agregar, obtener y eliminar último', () => {
+  const lista = new ListaEnlazada();
+  lista.agregarFinal(1);
+  lista.agregarFinal(2);
+  lista.agregarInicio(0);
+  assert.strictEqual(lista.tamano(), 3);
+  assert.strictEqual(lista.obtener(0), 0);
+  assert.strictEqual(lista.ultimo(), 2);
+  assert.strictEqual(lista.eliminarUltimo(), 2);
+  assert.strictEqual(lista.ultimo(), 1);
+});
+
+test('lista: filtrar, transformar y sumar (orden superior)', () => {
+  const lista = numeros(1, 2, 3, 4, 5);
+  assert.strictEqual(lista.filtrar((x) => x % 2 === 1).toString(), '[1, 3, 5]');
+  assert.strictEqual(lista.transformar((x) => x * 10).obtener(4), 50);
+  assert.strictEqual(lista.sumar((x) => x), 15);
+});
+
+test('lista: ordenada y mínimo', () => {
+  const lista = numeros(3, 1, 2);
+  assert.strictEqual(lista.ordenada(asc).toString(), '[1, 2, 3]');
+  assert.strictEqual(lista.minimo(asc), 1);
+});
+
+test('lista: fuera de rango y vacía lanzan error', () => {
+  assert.throws(() => numeros(1).obtener(5), RangeError);
+  assert.throws(() => new ListaEnlazada().eliminarUltimo());
+});
+
+test('cola de prioridad entrega primero el menor', () => {
+  const cola = new ColaPrioridad(asc);
+  [5, 1, 3].forEach((x) => cola.encolar(x));
+  assert.deepStrictEqual([cola.desencolar(), cola.desencolar(), cola.desencolar()], [1, 3, 5]);
+  assert.ok(cola.estaVacia());
+});
+
+test('concurrente igual a secuencial', async () => {
+  const red = cargarRed(path.join(raizProyecto(), 'data'));
+  const pedidos = ListaEnlazada.desdeArreglo([
+    { origen: 'L1', destino: 'L7', criterio: 'TIEMPO' },
+    { origen: 'L5', destino: 'L8', criterio: 'COSTO' },
+    { origen: 'L10', destino: 'L9', criterio: 'DISTANCIA' },
+  ]);
+  const aTexto = (rutas) => rutas.transformar((r) => `${r.texto()}|${r.distanciaKm}|${r.tiempoMin}|${r.costo}`).unir(';');
+  assert.strictEqual(aTexto(await calcularRutasConcurrente(red, pedidos)), aTexto(calcularRutasSecuencial(red, pedidos)));
+});

@@ -1,0 +1,57 @@
+'use strict';
+// Responsable: Integrante 3 (red, rutas y estadísticas)
+const test = require('node:test');
+const assert = require('node:assert');
+const path = require('node:path');
+const { cargarRed, raizProyecto } = require('../src/datos');
+const { Red } = require('../src/red');
+const { Ubicacion, Conexion } = require('../src/modelos');
+const { mejorRuta, todasLasRutas } = require('../src/rutas');
+const { DatosInvalidosError } = require('../src/validacion');
+
+const red = cargarRed(path.join(raizProyecto(), 'data'));
+const redDosPuntos = () => {
+  const r = new Red();
+  r.registrarUbicacion(new Ubicacion('A', 'A'));
+  r.registrarUbicacion(new Ubicacion('B', 'B'));
+  return r;
+};
+
+test('ruta más corta directa', () => {
+  const ruta = mejorRuta(red, 'L5', 'L4', 'DISTANCIA');
+  assert.strictEqual(ruta.texto(), 'L5->L4');
+  assert.strictEqual(ruta.distanciaKm, 20);
+});
+
+test('hay varias rutas posibles', () => {
+  assert.ok(todasLasRutas(red, 'L1', 'L7').tamano() >= 2);
+});
+
+test('criterios pueden dar rutas distintas', () => {
+  const corta = mejorRuta(red, 'L1', 'L7', 'DISTANCIA');
+  const barata = mejorRuta(red, 'L1', 'L7', 'COSTO');
+  assert.ok(corta.distanciaKm <= barata.distanciaKm);
+  assert.ok(barata.costo <= corta.costo);
+});
+
+test('ubicación desconocida lanza error', () => {
+  assert.throws(() => todasLasRutas(red, 'L1', 'ZZ'), DatosInvalidosError);
+});
+
+test('conexión duplicada se rechaza', () => {
+  const r = redDosPuntos();
+  r.registrarConexion(new Conexion('A', 'B', 10, 'BAJO', 0));
+  assert.throws(() => r.registrarConexion(new Conexion('B', 'A', 10, 'BAJO', 0)), DatosInvalidosError);
+});
+
+test('sin camino devuelve null', () => {
+  assert.strictEqual(mejorRuta(redDosPuntos(), 'A', 'B', 'TIEMPO'), null);
+});
+
+test('cambiar el tráfico de un tramo aumenta el tiempo', () => {
+  const r = cargarRed(path.join(raizProyecto(), 'data'));
+  const antes = mejorRuta(r, 'L1', 'L3', 'TIEMPO').tiempoMin;
+  r.cambiarTrafico('L3', 'L1', 'ALTO');
+  assert.ok(mejorRuta(r, 'L1', 'L3', 'TIEMPO').tiempoMin > antes);
+  assert.throws(() => r.cambiarTrafico('L1', 'L3', 'LENTO'), DatosInvalidosError);
+});

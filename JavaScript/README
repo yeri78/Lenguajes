@@ -1,0 +1,61 @@
+# Versión JavaScript: transporte con listas enlazadas
+
+La red, los vehículos, las solicitudes y los caminos se guardan **solo en listas enlazadas propias** (no se usan
+`Map`, `Set` ni arreglos como estructura de datos). Hay **2 estructuras**:
+
+1. `ListaEnlazada`: lista enlazada simple (ubicaciones, conexiones, vehículos, solicitudes, resultados, caminos).
+2. `ColaPrioridad`: lista enlazada ordenada (atiende primero las críticas y sirve de frontera en Dijkstra).
+
+Los arreglos de JS aparecen solo en los bordes: `process.argv`, partir una línea de texto y pasar datos a
+`worker_threads` (que solo transfiere datos simples).
+
+## Ejecutar (Node 18 o superior; desde la carpeta `javascript/`)
+
+```bash
+node src/main.js procesar              # procesa solicitudes en paralelo y escribe resultados/resultados_javascript.csv
+node src/main.js consultar L1 L8       # rutas posibles + mejor por distancia, tiempo y costo
+node src/main.js vehiculos             # vehículos disponibles y ocupados
+node src/main.js red                   # muestra la red
+node src/main.js interactivo           # menú: ver rutas con nombres, elegir una, asignar vehículo y conductor
+node src/main.js benchmark             # tiempos secuencial vs concurrente (100, 1000, 5000)
+npm test                               # 24 pruebas automatizadas (node:test, sin dependencias)
+```
+
+Sin npm: `node --test`. Los datos están en `../data/` (se busca hacia arriba la carpeta `data/`).
+
+## Reparto del trabajo (cada integrante tiene código y pruebas propias)
+
+| Integrante | Responsabilidad | Archivos (`src/`) | Pruebas (`test/`) |
+|---|---|---|---|
+| 1 | Modelos y validación | `validacion`, `fila`, `constantes`, `modelos` | `modelos.test.js` |
+| 2 | Estructuras y concurrencia | `listaEnlazada`, `colaPrioridad`, `calculo`, `concurrencia`, `trabajador` | `estructuras.test.js` |
+| 3 | Red, rutas y estadísticas | `red`, `ruta`, `rutas`, `estadisticas` | `rutas.test.js` |
+| 4 | Asignación, E/S y CLI | `resultadoSolicitud`, `asignacion`, `datos`, `servicio`, `interactivo`, `main` | `asignacion.test.js` |
+
+Cada archivo indica su responsable en el segundo renglón (`// Responsable: Integrante N`).
+
+## Dónde se cumple cada requisito
+
+| Requisito | Dónde |
+|---|---|
+| Funciones y estructuras de control | Todos los módulos |
+| Organización modular | 1 módulo por responsabilidad (CommonJS) |
+| POO con clases | `Red`, `Vehiculo`, `GestorFlota`, `ListaEnlazada`, `Interactivo`, … |
+| Listas enlazadas | `ListaEnlazada`, `ColaPrioridad` |
+| Validación | `validacion.js` + `desdeFila` de cada modelo |
+| Excepciones | `DatosInvalidosError`, capturada en `main` (código de salida 2) |
+| Orden superior / lambdas | `filtrar`, `transformar`, `contar`, `sumar`, `minimo`, comparadores y predicados |
+| CSV lectura/escritura | `datos.js` |
+| Concurrencia | `concurrencia.js` con `worker_threads` (la asignación se mantiene secuencial) |
+| Pruebas (≥ 5) | 24 en `test/` |
+
+## Reglas de negocio
+
+Idénticas a las otras versiones: tiempo = `distancia/60*60*factor` (BAJO 1.0, MEDIO 1.3, ALTO 1.7); costo = `distancia*2.5 + peaje`;
+tiempo máximo de respuesta: crítica 1 h, alta 2 h, media 8 h, baja 24 h; críticas primero; sin vehículo → `EN_COLA`;
+vehículo de menor capacidad suficiente.
+
+## Fuentes
+
+Código propio. Referencias: E. W. Dijkstra, *A note on two problems in connexion with graphs* (1959);
+documentación oficial de Node.js (`worker_threads`, `node:test`, `readline`) en https://nodejs.org/api/

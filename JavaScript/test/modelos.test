@@ -1,0 +1,43 @@
+'use strict';
+// Responsable: Integrante 1 (modelos y validación)
+const test = require('node:test');
+const assert = require('node:assert');
+const { Conexion, Ubicacion, Vehiculo, Solicitud } = require('../src/modelos');
+const { Fila } = require('../src/fila');
+const { DatosInvalidosError } = require('../src/validacion');
+
+const cerca = (a, b) => assert.ok(Math.abs(a - b) < 1e-9, `${a} != ${b}`);
+
+test('fórmula de tiempo con tráfico alto', () => {
+  cerca(new Conexion('A', 'B', 60, 'ALTO', 0).tiempoMin(), 102.0);
+});
+
+test('fórmula de costo incluye peaje', () => {
+  cerca(new Conexion('A', 'B', 100, 'BAJO', 50).costo(), 300.0);
+});
+
+test('validación rechaza distancia negativa', () => {
+  assert.throws(() => Conexion.desdeFila(
+    Fila.de('origen', 'A', 'destino', 'B', 'distancia_km', '-5', 'trafico', 'BAJO', 'peaje', '0')), DatosInvalidosError);
+});
+
+test('validación rechaza prioridad desconocida', () => {
+  assert.throws(() => Solicitud.desdeFila(
+    Fila.de('id', 'X', 'origen', 'L1', 'destino', 'L2', 'prioridad', 'URGENTE', 'criterio', 'TIEMPO', 'pasajeros', '1')),
+  DatosInvalidosError);
+});
+
+test('validación rechaza campo vacío y no numérico', () => {
+  assert.throws(() => Ubicacion.desdeFila(Fila.de('id', '', 'nombre', 'X')), DatosInvalidosError);
+  assert.throws(() => Vehiculo.desdeFila(
+    Fila.de('id', 'V1', 'tipo', 'Van', 'capacidad', 'abc', 'estado', 'DISPONIBLE')), DatosInvalidosError);
+});
+
+test('el vehículo lee su conductor y cambia de estado', () => {
+  const v = Vehiculo.desdeFila(Fila.de('id', 'V1', 'tipo', 'Van', 'capacidad', '8', 'estado', 'DISPONIBLE', 'conductor', 'Ana'));
+  assert.strictEqual(v.conductor, 'Ana');
+  v.ocupar();
+  assert.strictEqual(v.disponible, false);
+  v.liberar();
+  assert.strictEqual(v.disponible, true);
+});
