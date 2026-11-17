@@ -1,0 +1,13 @@
+// Responsable: Integrante 4. Ejecutar: java -cp out EjecutarPruebas (desde la carpeta java/)
+public final class EjecutarPruebas {
+    private EjecutarPruebas() { }
+
+    public static void main(String[] args) {
+        PruebasModelos.ejecutar();
+        PruebasEstructuras.ejecutar();
+        PruebasRutas.ejecutar();
+        PruebasAsignacion.ejecutar();
+        System.out.println("\nPasaron: " + Pruebas.pasadas + "  Fallaron: " + Pruebas.falladas);
+        System.exit(Pruebas.falladas == 0 ? 0 : 1);
+    }
+}

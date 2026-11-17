@@ -1,0 +1,39 @@
+import transporte.DatosInvalidosException;
+
+// Responsable: Integrante 4 (mini ejecutor de pruebas sin dependencias)
+public final class Pruebas {
+    private Pruebas() { }
+
+    public interface Prueba { void ejecutar() throws Exception; }
+
+    static int pasadas = 0;
+    static int falladas = 0;
+
+    public static void probar(String nombre, Prueba prueba) {
+        try {
+            prueba.ejecutar();
+            pasadas++;
+            System.out.println("OK    " + nombre);
+        } catch (Throwable t) {
+            falladas++;
+            System.out.println("FALLA " + nombre + " -> " + t);
+        }
+    }
+
+    public static void afirmar(boolean condicion, String mensaje) {
+        if (!condicion) throw new AssertionError(mensaje);
+    }
+
+    public static void afirmarCerca(double a, double b) {
+        afirmar(Math.abs(a - b) < 1e-9, a + " != " + b);
+    }
+
+    public static void afirmarLanza(Runnable accion) {
+        try {
+            accion.run();
+        } catch (DatosInvalidosException esperado) {
+            return;
+        }
+        throw new AssertionError("Se esperaba DatosInvalidosException");
+    }
+}

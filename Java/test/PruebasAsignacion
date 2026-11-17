@@ -1,0 +1,41 @@
+import transporte.*;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+
+// Responsable: Integrante 4 (asignación, datos y CLI)
+public final class PruebasAsignacion {
+    private PruebasAsignacion() { }
+
+    public static void ejecutar() {
+        Path datos = PruebasRutas.DATOS;
+        Red red = Datos.cargarRed(datos);
+        Pruebas.probar("las críticas se ordenan primero", () -> {
+            ListaEnlazada<Solicitud> orden = Asignacion.ordenarPorPrioridad(Datos.cargarSolicitudes(datos, red));
+            Pruebas.afirmar(orden.obtener(0).prioridad().equals("CRITICA"), "primera");
+            Pruebas.afirmar(orden.ultimo().prioridad().equals("BAJA"), "última");
+        });
+        Pruebas.probar("sin vehículo disponible queda en cola", () -> {
+            Servicio.Salida s = Servicio.procesar(red, Datos.cargarVehiculos(datos), Datos.cargarSolicitudes(datos, red), false);
+            Pruebas.afirmar(s.resultados().contiene(r -> r.estado().equals("EN_COLA")), "sin cola");
+        });
+        Pruebas.probar("asignación elige el vehículo más pequeño que alcanza", () -> {
+            ListaEnlazada<Vehiculo> lista = new ListaEnlazada<>();
+            lista.agregarFinal(new Vehiculo("A", "Bus", 30, "DISPONIBLE"));
+            lista.agregarFinal(new Vehiculo("B", "Sedan", 4, "DISPONIBLE"));
+            Asignacion.GestorFlota flota = new Asignacion.GestorFlota(lista);
+            Pruebas.afirmar(flota.asignar(3).orElseThrow().id().equals("B"), "debía ser B");
+            Pruebas.afirmar(flota.ocupados().tamano() == 1, "ocupados");
+        });
+        Pruebas.probar("archivo faltante lanza error de datos", () ->
+                Pruebas.afirmarLanza(() -> Datos.leerCsv(datos.resolve("no_existe.csv"))));
+        Pruebas.probar("resultados coinciden con los esperados", () -> {
+            Servicio.Salida s = Servicio.procesar(red, Datos.cargarVehiculos(datos), Datos.cargarSolicitudes(datos, red), true);
+            Path temporal = Files.createTempFile("resultados_java_test", ".csv");
+            Datos.escribirResultados(temporal, s.resultados());
+            Pruebas.afirmar(Files.readString(temporal).equals(Files.readString(datos.resolve("resultados_esperados.csv"))),
+                    "difiere del esperado");
+            Files.delete(temporal);
+        });
+    }
+}

@@ -1,0 +1,42 @@
+import transporte.*;
+
+import java.nio.file.Path;
+
+// Responsable: Integrante 3 (red, rutas y estadísticas)
+public final class PruebasRutas {
+    private PruebasRutas() { }
+
+    static final Path DATOS = Datos.raizProyecto().resolve("data");
+
+    public static void ejecutar() {
+        Red red = Datos.cargarRed(DATOS);
+        Pruebas.probar("ruta más corta directa", () -> {
+            Ruta ruta = Rutas.mejorRuta(red, "L5", "L4", "DISTANCIA");
+            Pruebas.afirmar(ruta.texto().equals("L5->L4"), "nodos " + ruta.texto());
+            Pruebas.afirmarCerca(ruta.distanciaKm(), 20.0);
+        });
+        Pruebas.probar("hay varias rutas posibles", () ->
+                Pruebas.afirmar(Rutas.todasLasRutas(red, "L1", "L7").tamano() >= 2, "pocas rutas"));
+        Pruebas.probar("criterios pueden dar rutas distintas", () -> {
+            Ruta corta = Rutas.mejorRuta(red, "L1", "L7", "DISTANCIA");
+            Ruta barata = Rutas.mejorRuta(red, "L1", "L7", "COSTO");
+            Pruebas.afirmar(corta.distanciaKm() <= barata.distanciaKm(), "distancia");
+            Pruebas.afirmar(barata.costo() <= corta.costo(), "costo");
+        });
+        Pruebas.probar("ubicación desconocida lanza error", () ->
+                Pruebas.afirmarLanza(() -> Rutas.todasLasRutas(red, "L1", "ZZ")));
+        Pruebas.probar("conexión duplicada se rechaza", () -> {
+            Red otra = new Red();
+            otra.registrarUbicacion(new Ubicacion("A", "A", 0, 0));
+            otra.registrarUbicacion(new Ubicacion("B", "B", 0, 0));
+            otra.registrarConexion(new Conexion("A", "B", 10, "BAJO", 0));
+            Pruebas.afirmarLanza(() -> otra.registrarConexion(new Conexion("B", "A", 10, "BAJO", 0)));
+        });
+        Pruebas.probar("sin camino devuelve null", () -> {
+            Red aislada = new Red();
+            aislada.registrarUbicacion(new Ubicacion("A", "A", 0, 0));
+            aislada.registrarUbicacion(new Ubicacion("B", "B", 0, 0));
+            Pruebas.afirmar(Rutas.mejorRuta(aislada, "A", "B", "TIEMPO") == null, "debía ser null");
+        });
+    }
+}

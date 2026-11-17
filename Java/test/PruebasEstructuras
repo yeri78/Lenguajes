@@ -1,0 +1,46 @@
+import transporte.*;
+
+import java.util.Comparator;
+
+// Responsable: Integrante 2 (estructuras y concurrencia)
+public final class PruebasEstructuras {
+    private PruebasEstructuras() { }
+
+    public static void ejecutar() {
+        Pruebas.probar("lista: agregar, obtener y eliminar último", () -> {
+            ListaEnlazada<Integer> l = new ListaEnlazada<>();
+            l.agregarFinal(1);
+            l.agregarFinal(2);
+            l.agregarInicio(0);
+            Pruebas.afirmar(l.tamano() == 3 && l.obtener(0) == 0 && l.ultimo() == 2, "contenido " + l);
+            Pruebas.afirmar(l.eliminarUltimo() == 2 && l.tamano() == 2 && l.ultimo() == 1, "eliminar " + l);
+        });
+        Pruebas.probar("lista: filtrar, transformar y sumar (orden superior)", () -> {
+            ListaEnlazada<Integer> l = new ListaEnlazada<>();
+            for (int i = 1; i <= 5; i++) l.agregarFinal(i);
+            Pruebas.afirmar(l.filtrar(x -> x % 2 == 1).toString().equals("[1, 3, 5]"), "filtrar");
+            Pruebas.afirmar(l.transformar(x -> x * 10).obtener(4) == 50, "transformar");
+            Pruebas.afirmarCerca(l.sumar(x -> x), 15.0);
+        });
+        Pruebas.probar("lista: ordenada y mínimo", () -> {
+            ListaEnlazada<Integer> l = new ListaEnlazada<>();
+            l.agregarFinal(3); l.agregarFinal(1); l.agregarFinal(2);
+            Pruebas.afirmar(l.ordenada(Comparator.naturalOrder()).toString().equals("[1, 2, 3]"), "ordenada");
+            Pruebas.afirmar(l.minimo(Comparator.naturalOrder()).orElseThrow() == 1, "mínimo");
+        });
+        Pruebas.probar("cola de prioridad entrega primero el menor", () -> {
+            ColaPrioridad<Integer> c = new ColaPrioridad<Integer>(Comparator.<Integer>naturalOrder());
+            c.encolar(5); c.encolar(1); c.encolar(3);
+            Pruebas.afirmar(c.desencolar() == 1 && c.desencolar() == 3 && c.desencolar() == 5 && c.estaVacia(), "orden");
+        });
+        Pruebas.probar("concurrente igual a secuencial", () -> {
+            Red red = Datos.cargarRed(PruebasRutas.DATOS);
+            ListaEnlazada<Concurrencia.Pedido> pedidos = new ListaEnlazada<>();
+            pedidos.agregarFinal(new Concurrencia.Pedido("L1", "L7", "TIEMPO"));
+            pedidos.agregarFinal(new Concurrencia.Pedido("L5", "L8", "COSTO"));
+            pedidos.agregarFinal(new Concurrencia.Pedido("L10", "L9", "DISTANCIA"));
+            Pruebas.afirmar(Concurrencia.calcularRutas(red, pedidos, false, 4)
+                    .equals(Concurrencia.calcularRutas(red, pedidos, true, 4)), "difieren");
+        });
+    }
+}

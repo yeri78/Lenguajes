@@ -1,0 +1,58 @@
+# Versión Java: transporte con listas enlazadas
+
+La red, los vehículos, las solicitudes y los caminos se guardan **solo en listas enlazadas propias** (no se usan
+`ArrayList`, `Map`, `Set` ni similares). Hay **2 estructuras**:
+
+1. `ListaEnlazada<T>`: lista enlazada simple genérica (ubicaciones, conexiones, vehículos, solicitudes, resultados, caminos).
+2. `ColaPrioridad<T>`: lista enlazada ordenada (atiende primero las solicitudes críticas y sirve de frontera en Dijkstra).
+
+## Ejecutar (JDK 17 o superior; desde esta carpeta `java/`)
+
+```bash
+javac -encoding UTF-8 -d out src/transporte/*.java tests/*.java
+java -cp out transporte.Main procesar              # procesa solicitudes en paralelo y escribe resultados/resultados_java.csv
+java -cp out transporte.Main consultar L1 L8       # rutas posibles + mejor por distancia, tiempo y costo
+java -cp out transporte.Main vehiculos             # vehículos disponibles y ocupados
+java -cp out transporte.Main red                   # muestra la red (ubicaciones y conexiones)
+java -cp out transporte.Main benchmark             # tiempos secuencial vs concurrente (100, 1000, 5000)
+java -cp out EjecutarPruebas                       # 21 pruebas automatizadas
+java -cp out transporte.Interactivo                # modo interactivo con menú (rutas, asignar viaje y conductor)
+```
+Si ves signos `?` en tildes: agrega `-Dstdout.encoding=UTF-8` después de `java`.
+Los datos de entrada están en `../data/` (CSV) y los resultados se escriben en `../resultados/`.
+
+## Reparto del trabajo (cada integrante tiene código y pruebas propias)
+
+| Integrante | Responsabilidad | Archivos (`src/transporte/`) | Pruebas (`tests/`) |
+|---|---|---|---|
+| 1 | Modelos y validación | `DatosInvalidosException`, `Fila`, `Validacion`, `Constantes`, `Ubicacion`, `Conexion`, `Vehiculo`, `Solicitud` | `PruebasModelos` |
+| 2 | Estructuras y concurrencia | `ListaEnlazada`, `ColaPrioridad`, `Concurrencia` | `PruebasEstructuras` |
+| 3 | Red, rutas y estadísticas | `Red`, `Ruta`, `Rutas`, `Estadisticas` | `PruebasRutas` |
+| 4 | Asignación, E/S y CLI | `ResultadoSolicitud`, `Asignacion`, `Datos`, `Servicio`, `Main`, `Interactivo` | `Pruebas`, `PruebasAsignacion`, `EjecutarPruebas` |
+
+Cada archivo indica su responsable en el segundo renglón (`// Responsable: Integrante N`).
+
+## Dónde se cumple cada requisito
+
+| Requisito | Dónde |
+|---|---|
+| Funciones y estructuras de control | Todas las clases (bucles, `switch`, condicionales) |
+| Organización modular | 1 clase por responsabilidad, paquete `transporte` |
+| POO con clases | `Red`, `Vehiculo`, `GestorFlota`, `ListaEnlazada`, records de modelo |
+| Listas enlazadas | `ListaEnlazada`, `ColaPrioridad` |
+| Validación | `Validacion` + `desdeFila` de cada modelo |
+| Excepciones | `DatosInvalidosException`, capturada en `Main` (código de salida 2) |
+| Orden superior / lambdas | `filtrar`, `transformar`, `contar`, `sumar`, `minimo`, `Comparator`, `Predicate` |
+| CSV lectura/escritura | `Datos.leerCsv`, `escribirResultados`, `escribirPares` |
+| Concurrencia | `Concurrencia.calcularRutas` con `ExecutorService` (la asignación se mantiene secuencial) |
+| Pruebas (≥ 5) | 21 en `tests/` |
+
+## Reglas de negocio
+
+Idénticas a las otras versiones: tiempo = `distancia/60*60*factor` (BAJO 1.0, MEDIO 1.3, ALTO 1.7); costo = `distancia*2.5 + peaje`;
+SLA: crítica 1 h, alta 2 h, media 8 h, baja 24 h; críticas primero; sin vehículo → `EN_COLA`; vehículo de menor capacidad suficiente.
+
+## Fuentes
+
+Código propio. Referencias: E. W. Dijkstra, *A note on two problems in connexion with graphs* (1959);
+documentación oficial de Java SE (`ExecutorService`, `Predicate`, `Comparator`, records) en https://docs.oracle.com/en/java/javase/

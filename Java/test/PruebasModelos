@@ -1,0 +1,22 @@
+import transporte.*;
+
+// Responsable: Integrante 1 (modelos y validación)
+public final class PruebasModelos {
+    private PruebasModelos() { }
+
+    public static void ejecutar() {
+        Pruebas.probar("fórmula de tiempo con tráfico alto", () ->
+                Pruebas.afirmarCerca(new Conexion("A", "B", 60, "ALTO", 0).tiempoMin(), 102.0));
+        Pruebas.probar("fórmula de costo incluye peaje", () ->
+                Pruebas.afirmarCerca(new Conexion("A", "B", 100, "BAJO", 50).costo(), 300.0));
+        Pruebas.probar("validación rechaza distancia negativa", () -> Pruebas.afirmarLanza(() ->
+                Conexion.desdeFila(Fila.de("origen", "A", "destino", "B", "distancia_km", "-5", "trafico", "BAJO", "peaje", "0"))));
+        Pruebas.probar("validación rechaza prioridad desconocida", () -> Pruebas.afirmarLanza(() ->
+                Solicitud.desdeFila(Fila.de("id", "X", "origen", "L1", "destino", "L2", "prioridad", "URGENTE",
+                        "criterio", "TIEMPO", "pasajeros", "1"))));
+        Pruebas.probar("validación rechaza campo vacío y no numérico", () -> {
+            Pruebas.afirmarLanza(() -> Ubicacion.desdeFila(Fila.de("id", "", "nombre", "X")));
+            Pruebas.afirmarLanza(() -> Vehiculo.desdeFila(Fila.de("id", "V1", "tipo", "Van", "capacidad", "abc", "estado", "DISPONIBLE")));
+        });
+    }
+}
