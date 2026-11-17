@@ -7,7 +7,7 @@ import java.util.Scanner;
 
 // Responsable: Integrante 4 (asignación, datos y CLI)
 
-/** ver rutas, elegir una y asignar vehículo y conductor. */
+/** Modo interactivo sencillo: ver rutas, elegir una y asignar vehículo y conductor. */
 public class Interactivo {
     private final Red red;
     private final ListaEnlazada<Vehiculo> vehiculos;
@@ -33,9 +33,9 @@ public class Interactivo {
     public void ejecutar() {
         String opcion = "";
         while (!opcion.equals("0")) {
-            System.out.println("\n1) Ver red   2) Consultar rutas y asignar viaje   3) Ver vehiculos");
-            System.out.println("4) Finalizar viaje   5) Cambiar trafico de un tramo   0) Salir");
-            opcion = leer("Elige una opcion: ");
+            System.out.println("\n1) Ver red   2) Consultar rutas y asignar viaje   3) Ver vehículos");
+            System.out.println("4) Finalizar viaje   5) Cambiar tráfico de un tramo   0) Salir");
+            opcion = leer("Elige una opción: ");
             try {
                 switch (opcion) {
                     case "1" -> verRed();
@@ -47,9 +47,9 @@ public class Interactivo {
                     default -> System.out.println("Opción no válida.");
                 }
             } catch (DatosInvalidosException e) {
-                System.out.println("Dato invalido: " + e.getMessage());
+                System.out.println("Dato inválido: " + e.getMessage());
             } catch (NumberFormatException e) {
-                System.out.println("Debes escribir un numero valido.");
+                System.out.println("Debes escribir un número válido.");
             }
         }
     }
@@ -68,14 +68,14 @@ public class Interactivo {
         return ruta.nodos().transformar(this::nombre).unir(" -> ");
     }
 
-    /**  id (L1) o el nombre (Pachuca) y devuelve id. */
+    /** Acepta el id (L1) o el nombre (Pachuca) y devuelve el id. */
     private String resolver(String texto) {
         return red.ubicaciones().buscar(u -> u.id().equalsIgnoreCase(texto) || u.nombre().equalsIgnoreCase(texto))
                 .map(Ubicacion::id)
-                .orElseThrow(() -> new DatosInvalidosException("Ubicacion desconocida: " + texto));
+                .orElseThrow(() -> new DatosInvalidosException("Ubicación desconocida: " + texto));
     }
 
-    private static String tiempo(double minutos) {
+    static String tiempo(double minutos) {
         int total = (int) Math.round(minutos);
         return total >= 60 ? (total / 60) + " h " + (total % 60) + " min" : total + " min";
     }
@@ -85,7 +85,7 @@ public class Interactivo {
         red.ubicaciones().forEach(u -> System.out.println("  " + u.id() + " " + u.nombre()));
         System.out.println("Conexiones:");
         red.conexiones().forEach(c -> System.out.println("  " + nombre(c.origen()) + " <-> " + nombre(c.destino()) + "  "
-                + c.distanciaKm() + " km  trafico " + c.trafico() + "  peaje $" + c.peaje()));
+                + c.distanciaKm() + " km  tráfico " + c.trafico() + "  peaje $" + c.peaje()));
     }
 
     private void verVehiculos() {
@@ -114,7 +114,7 @@ public class Interactivo {
         String rapida = Rutas.mejorRuta(red, origen, destino, "TIEMPO").texto();
         String barata = Rutas.mejorRuta(red, origen, destino, "COSTO").texto();
 
-        System.out.println("Rutas disponibles (de menor a mayor tiempo, con trafico incluido):");
+        System.out.println("Rutas disponibles (de menor a mayor tiempo, con tráfico incluido):");
         int numero = 1;
         for (Ruta r : rutas) {
             String marcas = (r.texto().equals(corta) ? " [MAS CORTA]" : "")
@@ -124,12 +124,12 @@ public class Interactivo {
                     + tiempo(r.tiempoMin()) + " | $" + Datos.f2(r.costo()) + marcas);
         }
 
-        int eleccion = Integer.parseInt(leer("Numero de ruta (0 = cancelar): "));
+        int eleccion = Integer.parseInt(leer("Número de ruta (0 = cancelar): "));
         if (eleccion == 0) {
             return;
         }
         if (eleccion < 1 || eleccion > rutas.tamano()) {
-            throw new DatosInvalidosException("Numero de ruta fuera de rango");
+            throw new DatosInvalidosException("Número de ruta fuera de rango");
         }
         Ruta ruta = rutas.obtener(eleccion - 1);
         Solicitud solicitud = Solicitud.desdeFila(Fila.de("id", "M" + (++contador), "origen", origen,
@@ -139,7 +139,7 @@ public class Interactivo {
 
         Optional<Vehiculo> vehiculo = flota.asignar(solicitud.pasajeros());
         if (vehiculo.isEmpty()) {
-            System.out.println("No hay vehiculo disponible para " + solicitud.pasajeros() + " pasajeros.");
+            System.out.println("No hay vehículo disponible para " + solicitud.pasajeros() + " pasajeros.");
             return;
         }
         System.out.println("\nSolicitud " + solicitud.id() + " ASIGNADA");
@@ -147,23 +147,23 @@ public class Interactivo {
         System.out.println("  Conductor: " + vehiculo.get().conductor());
         System.out.println("  Ruta:      " + nombres(ruta));
         System.out.println("  Tiempo estimado: " + tiempo(ruta.tiempoMin()) + " | Costo: $" + Datos.f2(ruta.costo()));
-        System.out.println("  Tiempo maximo de respuesta (" + solicitud.prioridad() + "): "
+        System.out.println("  Tiempo máximo de respuesta (" + solicitud.prioridad() + "): "
                 + Constantes.horasMaxRespuesta(solicitud.prioridad()) + " h -> "
                 + (Asignacion.cumpleSla(solicitud, ruta) ? "SI cumple" : "NO cumple"));
     }
 
     private void finalizarViaje() {
-        String id = leer("Id del vehículo que termino (ej. V1): ").toUpperCase();
+        String id = leer("Id del vehículo que terminó (ej. V1): ").toUpperCase();
         Vehiculo vehiculo = vehiculos.buscar(v -> v.id().equals(id))
-                .orElseThrow(() -> new DatosInvalidosException("Vehiculo no registrado: " + id));
+                .orElseThrow(() -> new DatosInvalidosException("Vehículo no registrado: " + id));
         vehiculo.liberar();
-        System.out.println("Vehiculo " + id + " disponible de nuevo.");
+        System.out.println("Vehículo " + id + " disponible de nuevo.");
     }
 
     private void cambiarTrafico() {
-        String a = resolver(leer("Ubicacion A (nombre o id): "));
-        String b = resolver(leer("Ubicacion B (nombre o id): "));
-        String trafico = leer("Nuevo trafico (BAJO/MEDIO/ALTO): ").toUpperCase();
+        String a = resolver(leer("Ubicación A (nombre o id): "));
+        String b = resolver(leer("Ubicación B (nombre o id): "));
+        String trafico = leer("Nuevo tráfico (BAJO/MEDIO/ALTO): ").toUpperCase();
         red.cambiarTrafico(a, b, trafico);
         System.out.println("Listo. Consulta rutas de nuevo para ver el efecto.");
     }

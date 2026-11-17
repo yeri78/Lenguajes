@@ -18,6 +18,7 @@ java -cp out transporte.Main benchmark             # tiempos secuencial vs concu
 java -cp out EjecutarPruebas                       # 21 pruebas automatizadas
 java -cp out transporte.Interactivo                # modo interactivo con menú (rutas, asignar viaje y conductor)
 ```
+Para abrir la ventana gráfica en Windows, ejecuta `abrir_ventana.bat` desde esta carpeta.
 Si ves signos `?` en tildes: agrega `-Dstdout.encoding=UTF-8` después de `java`.
 Los datos de entrada están en `../data/` (CSV) y los resultados se escriben en `../resultados/`.
 

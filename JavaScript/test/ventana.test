@@ -1,0 +1,60 @@
+'use strict';
+const test = require('node:test');
+const assert = require('node:assert');
+const { once } = require('node:events');
+const { crearServidor } = require('../src/ventana');
+
+test('la ventana web sirve la interfaz y sus operaciones', async (t) => {
+  const servidor = crearServidor();
+  servidor.listen(0, '127.0.0.1');
+  await once(servidor, 'listening');
+  t.after(async () => {
+    servidor.closeAllConnections();
+    await new Promise((resolve) => servidor.close(resolve));
+  });
+
+  const url = `http://127.0.0.1:${servidor.address().port}`;
+  const pagina = await fetch(url);
+  assert.strictEqual(pagina.status, 200);
+  assert.match(await pagina.text(), /Sistema de transporte \(JavaScript\)/);
+
+  const consultar = async (ruta, cuerpo) => {
+    const respuesta = await fetch(`${url}${ruta}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(cuerpo),
+    });
+    return { respuesta, datos: await respuesta.json() };
+  };
+  const estado = await fetch(`${url}/api/estado`).then((respuesta) => respuesta.json());
+  assert.ok(estado.ubicaciones.length > 1);
+  assert.ok(estado.conexiones.length > 0);
+
+  const { respuesta: respuestaRutas, datos: datosRutas } = await consultar('/api/rutas', {
+    origen: estado.ubicaciones[0].id,
+    destino: estado.ubicaciones[estado.ubicaciones.length - 1].id,
+  });
+  assert.strictEqual(respuestaRutas.status, 200);
+  assert.ok(datosRutas.rutas.length > 0);
+
+  const { respuesta: respuestaAsignar, datos: datosAsignar } = await consultar('/api/asignar', {
+    numero: 1, pasajeros: 1, prioridad: 'MEDIA',
+  });
+  assert.strictEqual(respuestaAsignar.status, 200);
+  assert.match(datosAsignar.texto, /ASIGNADA/);
+  const idVehiculo = datosAsignar.texto.match(/Vehículo:\s+(\S+)/)[1];
+  const { respuesta: respuestaFinalizar } = await consultar('/api/finalizar', { id: idVehiculo });
+  assert.strictEqual(respuestaFinalizar.status, 200);
+
+  const tramo = estado.conexiones[0];
+  const traficoNuevo = tramo.trafico === 'BAJO' ? 'MEDIO' : 'BAJO';
+  const { respuesta: respuestaTrafico } = await consultar('/api/trafico', {
+    origen: tramo.origen, destino: tramo.destino, trafico: traficoNuevo,
+  });
+  assert.strictEqual(respuestaTrafico.status, 200);
+
+  const { respuesta: respuestaProcesar, datos: datosProcesar } = await consultar('/api/procesar', {});
+  assert.strictEqual(respuestaProcesar.status, 200);
+  assert.ok(Array.isArray(datosProcesar.filas));
+  assert.ok(Array.isArray(datosProcesar.resumen));
+});

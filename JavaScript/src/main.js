@@ -1,6 +1,6 @@
 'use strict';
 // Responsable: Integrante 4 (asignación, datos y CLI)
-// CLI: node src/main.js procesar | consultar ORIGEN DESTINO | vehiculos | red | benchmark | interactivo
+// CLI: node src/main.js procesar | consultar ORIGEN DESTINO | vehiculos | red | benchmark | interactivo | ventana
 const path = require('node:path');
 const { ListaEnlazada } = require('./listaEnlazada');
 const { raizProyecto, cargarRed, cargarVehiculos, cargarSolicitudes, escribirLineas,

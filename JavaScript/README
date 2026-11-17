@@ -18,9 +18,11 @@ node src/main.js vehiculos             # vehículos disponibles y ocupados
 node src/main.js red                   # muestra la red
 node src/main.js interactivo           # menú: ver rutas con nombres, elegir una, asignar vehículo y conductor
 node src/main.js benchmark             # tiempos secuencial vs concurrente (100, 1000, 5000)
+node src/main.js ventana               # inicia la ventana web local y abre el navegador
 npm test                               # 24 pruebas automatizadas (node:test, sin dependencias)
 ```
 
+En Windows también puedes ejecutar `abrir_ventana.bat`. Cierra la ventana de consola (Ctrl+C) para detener el servidor.
 Sin npm: `node --test`. Los datos están en `../data/` (se busca hacia arriba la carpeta `data/`).
 
 ## Reparto del trabajo (cada integrante tiene código y pruebas propias)
