@@ -1,0 +1,61 @@
+# Versión Python: transporte con listas enlazadas
+
+La red, los vehículos, las solicitudes y los caminos se guardan **solo en listas enlazadas propias** (no se usan
+diccionarios, conjuntos ni listas de Python como estructura de datos). Hay **2 estructuras**:
+
+1. `ListaEnlazada` (`lista_enlazada.py`): lista enlazada simple (ubicaciones, conexiones, vehículos, solicitudes, resultados, caminos).
+2. `ColaPrioridad` (`cola_prioridad.py`): lista enlazada ordenada (atiende primero las críticas y sirve de frontera en Dijkstra).
+
+## Ejecutar (Python 3.9 o superior; desde la carpeta `python/`)
+
+```bash
+python main.py procesar              # procesa solicitudes en paralelo y escribe resultados/resultados_python.csv
+python main.py consultar L1 L8       # rutas posibles + mejor por distancia, tiempo y costo
+python main.py vehiculos             # vehículos disponibles y ocupados
+python main.py red                   # muestra la red
+python main.py interactivo           # menú: ver rutas con nombres, elegir una, asignar vehículo y conductor
+python main.py benchmark             # tiempos secuencial vs concurrente (100, 1000, 5000)
+python -m unittest discover -s tests -v    # 24 pruebas automatizadas
+```
+
+Los datos están en `../data/` (se busca hacia arriba la carpeta `data/`). No necesita instalar nada.
+
+## Reparto del trabajo (cada integrante tiene código y pruebas propias)
+
+| Integrante | Responsabilidad | Archivos (`transporte/`) | Pruebas (`tests/`) |
+|---|---|---|---|
+| 1 | Modelos y validación | `validacion`, `fila`, `constantes`, `modelos` | `test_modelos.py` |
+| 2 | Estructuras y concurrencia | `lista_enlazada`, `cola_prioridad`, `calculo`, `concurrencia` | `test_estructuras.py` |
+| 3 | Red, rutas y estadísticas | `red`, `ruta`, `rutas`, `estadisticas` | `test_rutas.py` |
+| 4 | Asignación, E/S y CLI | `__init__`, `resultado_solicitud`, `asignacion`, `datos`, `servicio`, `interactivo` y `main.py` | `test_asignacion.py` |
+
+Cada archivo indica su responsable en la primera línea (`# Responsable: Integrante N`).
+
+## Dónde se cumple cada requisito
+
+| Requisito | Dónde |
+|---|---|
+| Funciones y estructuras de control | Todos los módulos |
+| Organización modular | 1 módulo por responsabilidad (paquete `transporte`) |
+| POO con clases | `Red`, `Vehiculo`, `GestorFlota`, `ListaEnlazada`, `Interactivo`, dataclasses |
+| Listas enlazadas | `ListaEnlazada`, `ColaPrioridad` |
+| Validación | `validacion.py` + `desde_fila` de cada modelo |
+| Excepciones | `DatosInvalidosError`, capturada en `main.py` (código de salida 2) |
+| Orden superior / lambdas | `filtrar`, `transformar`, `contar`, `sumar`, `minimo`, comparadores y lambdas |
+| CSV lectura/escritura | `datos.py` |
+| Concurrencia | `concurrencia.py` con `ThreadPoolExecutor` (la asignación se mantiene secuencial) |
+| Pruebas (≥ 5) | 24 en `tests/` |
+
+> Nota: en CPython los hilos comparten el GIL, por lo que en tareas de CPU casi no aceleran. El benchmark lo muestra
+> y es parte de la comparación entre lenguajes.
+
+## Reglas de negocio
+
+Idénticas a las otras versiones: tiempo = `distancia/60*60*factor` (BAJO 1.0, MEDIO 1.3, ALTO 1.7); costo = `distancia*2.5 + peaje`;
+tiempo máximo de respuesta: crítica 1 h, alta 2 h, media 8 h, baja 24 h; críticas primero; sin vehículo → `EN_COLA`;
+vehículo de menor capacidad suficiente.
+
+## Fuentes
+
+Código propio. Referencias: E. W. Dijkstra, *A note on two problems in connexion with graphs* (1959);
+documentación oficial de Python (`concurrent.futures`, `unittest`, `dataclasses`) en https://docs.python.org/3/
